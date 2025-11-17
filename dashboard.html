@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electica Energy - AI Battery Intelligence & Energy Trading Platform</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Plotly.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    
+    <!-- Vanta.js CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.net.min.js"></script>
+    
+    <!-- Leaflet.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --sage-50: #f6f7f6;
+            --sage-100: #e3e7e3;
+            --sage-200: #c7d0c7;
+            --sage-300: #a3b3a3;
+            --sage-400: #7a907a;
+            --sage-500: #5c7359;
+            --sage-600: #495d47;
+            --sage-700: #3d4d3b;
+            --sage-800: #334032;
+            --sage-900: #2b352b;
+            
+            --charcoal-50: #f6f6f6;
+            --charcoal-100: #e7e7e7;
+            --charcoal-200: #d1d1d1;
+            --charcoal-300: #b0b0b0;
+            --charcoal-400: #888888;
+            --charcoal-500: #6d6d6d;
+            --charcoal-600: #5d5d5d;
+            --charcoal-700: #4f4f4f;
+            --charcoal-800: #454545;
+            --charcoal-900: #3d3d3d;
+            
+            --accent-green: #22c55e;
+            --accent-blue: #3b82f6;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--sage-50);
+            min-height: 100vh;
+            /* cursor: none; */ /* Hide default cursor */
+        }
+        
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            padding: 8px 16px;
+            color: var(--charcoal-600);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            color: var(--charcoal-900);
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: var(--sage-700);
+            font-weight: 600;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--sage-700), var(--charcoal-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Custom Cursor - REMOVED */
+        /* .cursor { ... } */
+        /* .cursor-follower { ... } */
+        
+        /* Leaflet Map Height */
+        #assetMap {
+            height: 400px;
+        }
+        
+        /* Tab Styles */
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: rgba(255, 255, 255, 0.4);
+            color: var(--accent-blue);
+            border-bottom: 3px solid var(--accent-blue);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="text-charcoal-800">
+
+    <!-- Vanta.js Background -->
+    <div id="vanta-bg"></div>
+    
+    <!-- Custom Cursor - REMOVED -->
+    <!-- <div class="cursor"></div> -->
+    <!-- <div class="cursor-follower"></div> -->
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 glass-effect border-b border-white/20">
+        <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-xl gradient-text">Electica Energy</span>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex md:items-center md:space-x-2">
+                    <a href="index.html" class="nav-link active">Dashboard</a>
+                    <!-- <a href="trading.html" class="nav-link">Energy Trading</a> -->
+                    <a href="analytics.html" class="nav-link">Analytics</a>
+                    <a href="reports.html" class="nav-link">Reports</a>
+                    <a href="configuration.html" class="nav-link">Configuration</a>
+                    <a href="dashboard.html" class="nav-link">EAM Dashboard</a>
+                </div>
+                
+                <!-- Right Side Info -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span class="text-sm font-medium text-charcoal-700">System Active</span>
+                    </div>
+                    <span class="text-sm text-charcoal-600">|</span>
+                    <span class="text-sm font-medium text-charcoal-700">Fleet: 1,247 Assets</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-charcoal-900 mb-2">ElecticaOS Intelligence Layer</h1>
+            <p class="text-xl text-charcoal-600">Tesla Autobidder Equivalent + AI Battery Intelligence</p>
+        </header>
+
+        <!-- Key Metrics -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass-effect rounded-2xl p-6 card-hover">
+                <h2 class="text-lg font-semibold text-charcoal-900 mb-2">Current Energy Price</h2>
+                <p class="text-4xl font-bold text-blue-600">$0.124/kWh</p>
+                <p class="text-sm text-green-600 mt-2">↓ 15% from peak ($0.14/kWh)</p>
+            </div>
+            <div class="glass-effect rounded-2xl p-6 card-hover">
+                <h2 class="text-lg font-semibold text-charcoal-900 mb-2">Today's Revenue</h2>
+                <p class="text-4xl font-bold text-green-600">$47,892</p>
+                <p class="text-sm text-green-600 mt-2">↑ 23% from yesterday</p>
+            </div>
+            <div class="glass-effect rounded-2xl p-6 card-hover">
+                <h2 class="text-lg font-semibold text-charcoal-900 mb-2">Grid Services</h2>
+                <p class="text-4xl font-bold text-purple-600">847 MW</p>
+                <p class="text-sm text-green-600 mt-2">Active - Ready for deployment</p>
+            </div>
+        </section>
+
+        <!-- Energy Orchestration Tabs -->
+        <section class="glass-effect rounded-2xl p-6 mb-8">
+            <h2 class="text-2xl font-bold text-charcoal-900 mb-4">Energy Orchestration</h2>
+            
+            <!-- Tab Navigation -->
+            <div class="border-b border-white/30 mb-6">
+                <nav class="flex space-x-4" aria-label="Tabs">
+                    <button class="tab-button active py-3 px-4 font-medium text-charcoal-600 rounded-t-lg" data-tab="home">Home Assets</button>
+                    <button class="tab-button py-3 px-4 font-medium text-charcoal-600 rounded-t-lg" data-tab="commercial">Commercial</button>
+                    <button class="tab-button py-3 px-4 font-medium text-charcoal-600 rounded-t-lg" data-tab="industrial">Industrial</button>
+                    <!-- <button class="tab-button py-3 px-4 font-medium text-charcoal-600 rounded-t-lg" data-tab="trading">Energy Trading</button> -->
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div>
+                <!-- Home Assets Tab -->
+                <div id="tab-home" class="tab-content active">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Home Asset Overview</h3>
+                            <div class="space-y-4">
+                                <div class="bg-white/30 rounded-lg p-4 flex items-center justify-between">
+                                    <span class="font-medium">Tesla Model Y (75 kWh)</span>
+                                    <span class="text-sm text-green-600 font-medium">Charging (11 kW)</span>
+                                </div>
+                                <div class="bg-white/30 rounded-lg p-4 flex items-center justify-between">
+                                    <span class="font-medium">Powerwall 2 (13.5 kWh)</span>
+                                    <span class="text-sm text-blue-600 font-medium">Idle (V2G Ready)</span>
+                                </div>
+                                <div class="bg-white/30 rounded-lg p-4 flex items-center justify-between">
+                                    <span class="font-medium">Solar Roof (8.5 kW)</span>
+                                    <span class="text-sm text-orange-600 font-medium">Generating (6.2 kW)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Live Energy Flow (kWh)</h3>
+                            <div id="energyFlowChart" class="w-full h-64"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Energy Trading Tab - REMOVED -->
+                <!-- <div id="tab-trading" class="tab-content"> ... </div> -->
+            </div>
+        </section>
+
+        <!-- Asset Map -->
+        <section class="glass-effect rounded-2xl p-6">
+            <h2 class="text-2xl font-bold text-charcoal-900 mb-4">Energy Asset Map</h2>
+            <div id="assetMap" class="w-full rounded-lg" style="height: 400px; background-color: var(--sage-100);"></div>
+        </section>
+        
+    </main>
+    
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed top-4 right-4 z-[100]"></div>
+
+    <!-- JavaScript -->
+    <script>
+        // --- VANTA.JS BACKGROUND ---
+        VANTA.NET({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            backgroundColor: 0xf6f7f6, // --sage-50
+            color: 0x5c7359,          // --sage-500
+            maxDistance: 22.00,
+            spacing: 18.00
+        });
+
+        // --- CUSTOM CURSOR - REMOVED ---
+        /*
+        const cursor = document.querySelector('.cursor');
+        const cursorFollower = document.querySelector('.cursor-follower');
+        ...
+        */
+
+        // --- NOTIFICATION SYSTEM ---
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notif = document.createElement('div');
+            
+            let bgColor;
+            switch(type) {
+                case 'success': bgColor = 'bg-green-500'; break;
+                case 'error': bgColor = 'bg-red-500'; break;
+                default: bgColor = 'bg-blue-500';
+            }
+            
+            notif.className = `px-4 py-3 rounded-lg shadow-lg text-white ${bgColor} mb-2 animate-pulse`;
+            notif.textContent = message;
+            
+            container.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.classList.remove('animate-pulse');
+                notif.style.transition = 'opacity 0.5s ease';
+                notif.style.opacity = '0';
+                setTimeout(() => notif.remove(), 500);
+            }, 3000);
+        }
+
+        // --- TAB SWITCHING ---
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                
+                // Update buttons
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update content
+                tabContents.forEach(content => {
+                    if (content.id === `tab-${tabId}`) {
+                        content.classList.add('active');
+                        // Special case: If switching to trading tab, init that chart - REMOVED
+                        /*
+                        if (tabId === 'trading') {
+                            initPricePredictionChart();
+                        }
+                        */
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        // --- PLOTLY CHARTS ---
+        const commonLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Montserrat', color: 'var(--charcoal-700)' },
+            margin: { t: 30, r: 30, b: 40, l: 50 },
+            xaxis: { gridcolor: 'rgba(0,0,0,0.1)' },
+            yaxis: { gridcolor: 'rgba(0,0,0,0.1)' },
+            legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(255,255,255,0.5)', bordercolor: 'rgba(0,0,0,0.1)', borderwidth: 1 }
+        };
+
+        // Chart for Home Assets Tab
+        function initEnergyFlowChart() {
+            const trace1 = {
+                x: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                y: [2.1, 1.8, 4.2, 7.8, 6.4, 3.2],
+                mode: 'lines+markers',
+                name: 'Consumption',
+                line: { color: 'var(--accent-red)', width: 3 }
+            };
+            const trace2 = {
+                x: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                y: [0, 0, 2.1, 8.5, 7.2, 0.5],
+                mode: 'lines+markers',
+                name: 'Generation',
+                line: { color: 'var(--accent-orange)', width: 3 }
+            };
+            const trace3 = {
+                x: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                y: [-2.1, -1.8, -2.1, 0.7, -0.8, -2.7],
+                mode: 'lines+markers',
+                name: 'Grid Exchange',
+                line: { color: 'var(--accent-blue)', width: 3 }
+            };
+            
+            Plotly.newPlot('energyFlowChart', [trace1, trace2, trace3], {
+                ...commonLayout,
+                yaxis: { ...commonLayout.yaxis, title: 'kW' }
+            }, { responsive: true, displayModeBar: false });
+        }
+        
+        // Chart for Energy Trading Tab - REMOVED
+        /*
+        let predictionChartInitialized = false;
+        function initPricePredictionChart() {
+            ...
+        }
+        */
+
+        // --- LEAFLET MAP ---
+        function initAssetMap() {
+            try {
+                const map = L.map('assetMap').setView([20.5937, 78.9629], 5); // Center of India
+            
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                const assets = [
+                    { lat: 28.7041, lng: 77.1025, name: 'Delhi Home Cluster (45 MW)', color: 'blue' },
+                    { lat: 19.0760, lng: 72.8777, name: 'Mumbai Commercial (120 MW)', color: 'green' },
+                    { lat: 12.9716, lng: 77.5946, name: 'Bangalore Industrial (52 MW)', color: 'purple' },
+                    { lat: 22.3193, lng: 73.1809, name: 'Gujarat Industrial Zone (250 MW)', color: 'purple' },
+                    { lat: 13.0827, lng: 80.2707, name: 'Chennai IT Park (78 MW)', color: 'green' },
+                ];
+                
+                assets.forEach(asset => {
+                    L.circleMarker([asset.lat, asset.lng], {
+                        color: asset.color,
+                        fillColor: asset.color,
+                        fillOpacity: 0.7,
+                        radius: 8
+                    }).addTo(map)
+                      .bindPopup(`<b>${asset.name}</b>`);
+                });
+            } catch (e) {
+                console.error("Leaflet.js error:", e);
+                document.getElementById('assetMap').innerHTML = "Map loading failed. Please check your connection.";
+            }
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initEnergyFlowChart();
+            initAssetMap();
+            // Show a welcome notification
+            showNotification('ElecticaOS Dashboard Active', 'success');
+        });
+
+    </script>
+</body>
+</html>

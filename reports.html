@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Energy Action Models</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Plotly.js CDN (Not used here, but for consistency) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    
+    <!-- Vanta.js CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.net.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --sage-50: #f6f7f6;
+            --sage-100: #e3e7e3;
+            --sage-200: #c7d0c7;
+            --sage-300: #a3b3a3;
+            --sage-400: #7a907a;
+            --sage-500: #5c7359;
+            --sage-600: #495d47;
+            --sage-700: #3d4d3b;
+            --sage-800: #334032;
+            --sage-900: #2b352b;
+            
+            --charcoal-50: #f6f6f6;
+            --charcoal-100: #e7e7e7;
+            --charcoal-200: #d1d1d1;
+            --charcoal-300: #b0b0b0;
+            --charcoal-400: #888888;
+            --charcoal-500: #6d6d6d;
+            --charcoal-600: #5d5d5d;
+            --charcoal-700: #4f4f4f;
+            --charcoal-800: #454545;
+            --charcoal-900: #3d3d3d;
+            
+            --accent-green: #22c55e;
+            --accent-blue: #3b82f6;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--sage-50);
+            min-height: 100vh;
+        }
+        
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .glass-effect, .report-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            padding: 8px 16px;
+            color: var(--charcoal-600);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            color: var(--charcoal-900);
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: var(--sage-700);
+            font-weight: 600;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--sage-700), var(--charcoal-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .template-card {
+             background: rgba(255, 255, 255, 0.4);
+             transition: all 0.3s ease;
+        }
+        .template-card:hover {
+            background: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body class="text-charcoal-800">
+
+    <!-- Vanta.js Background -->
+    <div id="vanta-bg"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 glass-effect border-b border-white/20">
+        <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-xl gradient-text">Electica Energy</span>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex md:items-center md:space-x-2">
+                    <a href="index.html" class="nav-link">Dashboard</a>
+                    <a href="trading.html" class="nav-link">Energy Trading</a>
+                    <a href="analytics.html" class="nav-link">Analytics</a>
+                    <a href="reports.html" class="nav-link active">Reports</a>
+                    <a href="configuration.html" class="nav-link">Configuration</a>
+                    <a href="dashboard.html" class="nav-link">EAM Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-charcoal-900 mb-2">Reports & Data Export</h1>
+            <p class="text-xl text-charcoal-600">Generate, schedule, and download your data</p>
+        </header>
+
+        <!-- Generate Report -->
+        <section class="report-card rounded-2xl p-6 mb-8 card-hover">
+            <h2 class="text-xl font-semibold text-charcoal-900 mb-6">Generate New Report</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                    <label for="reportType" class="text-sm font-medium text-charcoal-800">Report Type</label>
+                    <select id="reportType" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                        <option>Performance Analysis</option>
+                        <option>Battery Health Report</option>
+                        <option>Financial Summary</option>
+                        <option>Compliance Report</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="timePeriod" class="text-sm font-medium text-charcoal-800">Time Period</label>
+                    <select id="timePeriod" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                        <option>Last 7 Days</option>
+                        <option>Last 30 Days</option>
+                        <option>Last 90 Days</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="assetFilter" class="text-sm font-medium text-charcoal-800">Asset Filter</label>
+                    <select id="assetFilter" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                        <option>All Assets</option>
+                        <option>EV Bus Fleet</option>
+                        <option>Grid Storage</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="reportFormat" class="text-sm font-medium text-charcoal-800">Format</label>
+                    <select id="reportFormat" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                        <option>PDF</option>
+                        <option>Excel (XLSX)</option>
+                        <option>CSV</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6">
+                <button class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors" onclick="showNotification('Generating report...', 'info')">
+                    Generate Report
+                </button>
+            </div>
+        </section>
+
+        <!-- Report Lists -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Recent Reports -->
+            <div class="report-card rounded-2xl p-6 card-hover">
+                <h2 class="text-xl font-semibold text-charcoal-900 mb-6">Recent Reports</h2>
+                <div class="space-y-4">
+                    <div class="bg-white/30 rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-medium text-charcoal-800">Monthly Performance (Oct 2025)</h3>
+                            <p class="text-sm text-charcoal-600">Generated: Nov 1, 2025 - PDF</p>
+                        </div>
+                        <a href="#" class="p-2 rounded-full hover:bg-white/50" onclick="showNotification('Downloading report...', 'success')">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </a>
+                    </div>
+                    <div class="bg-white/30 rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-medium text-charcoal-800">Q3 Health Report (All Assets)</h3>
+                            <p class="text-sm text-charcoal-600">Generated: Oct 5, 2025 - XLSX</p>
+                        </div>
+                        <a href="#" class="p-2 rounded-full hover:bg-white/50" onclick="showNotification('Downloading report...', 'success')">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scheduled Reports -->
+            <div class="report-card rounded-2xl p-6 card-hover">
+                <h2 class="text-xl font-semibold text-charcoal-900 mb-6">Scheduled Reports</h2>
+                <div class="space-y-4">
+                    <div class="bg-white/30 rounded-lg p-4">
+                        <h3 class="font-medium text-charcoal-800">Weekly Health Summary</h3>
+                        <p class="text-sm text-charcoal-600">Next: Nov 21, 2025 (Every Friday) - PDF</p>
+                        <div class="mt-2 space-x-2">
+                            <button class="text-xs font-medium text-blue-600 hover:underline" onclick="showNotification('Edit schedule...', 'info')">Edit</button>
+                            <button class="text-xs font-medium text-red-600 hover:underline" onclick="showNotification('Schedule disabled.', 'error')">Disable</button>
+                        </div>
+                    </div>
+                    <div class="bg-white/30 rounded-lg p-4">
+                        <h3 class="font-medium text-charcoal-800">Monthly Financial Report</h3>
+                        <p class="text-sm text-charcoal-600">Next: Dec 1, 2025 (1st of Month) - XLSX</p>
+                        <div class="mt-2 space-x-2">
+                            <button class="text-xs font-medium text-blue-600 hover:underline" onclick="showNotification('Edit schedule...', 'info')">Edit</button>
+                            <button class="text-xs font-medium text-red-600 hover:underline" onclick="showNotification('Schedule disabled.', 'error')">Disable</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Data Export -->
+        <section class="report-card rounded-2xl p-6 mb-8 card-hover">
+            <h2 class="text-xl font-semibold text-charcoal-900 mb-6">Data Export</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="dataType" class="text-sm font-medium text-charcoal-800">Data Type</label>
+                    <select id="dataType" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                        <option>Raw Sensor Data</option>
+                        <option>Processed Analytics</option>
+                        <option>Predictions & Models</option>
+                        <option>Alert History</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="exportDateRange" class="text-sm font-medium text-charcoal-800">Date Range</label>
+                    <select id="exportDateRange" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                        <option>Last 24 Hours</option>
+                        <option>Last 7 Days</option>
+                        <option>Last 30 Days</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="exportFormat" class="text-sm font-medium text-charcoal-800">Export Format</label>
+                    <select id="exportFormat" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                        <option>CSV</option>
+                        <option>JSON</option>
+                        <option>Parquet</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6">
+                <button class="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors" onclick="showNotification('Preparing data export...', 'success')">
+                    Export Data
+                </button>
+            </div>
+        </section>
+
+        <!-- Report Templates -->
+        <section class="report-card rounded-2xl p-6 card-hover">
+            <h2 class="text-xl font-semibold text-charcoal-900 mb-6">Report Templates</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button class="template-card p-4 rounded-lg border border-transparent text-left" onclick="showNotification('Using Executive Summary template', 'info')">
+                    <h3 class="font-medium text-charcoal-800">Executive Summary</h3>
+                    <p class="text-sm text-charcoal-600">High-level overview for management</p>
+                </button>
+                <button class="template-card p-4 rounded-lg border border-transparent text-left" onclick="showNotification('Using Technical Analysis template', 'info')">
+                    <h3 class="font-medium text-charcoal-800">Technical Analysis</h3>
+                    <p class="text-sm text-charcoal-600">Detailed technical metrics</p>
+                </button>
+                <button class="template-card p-4 rounded-lg border border-transparent text-left" onclick="showNotification('Using Maintenance template', 'info')">
+                    <h3 class="font-medium text-charcoal-800">Maintenance Report</h3>
+                    <p class="text-sm text-charcoal-600">Schedules and recommendations</p>
+                </button>
+            </div>
+        </section>
+
+    </main>
+    
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed top-20 right-4 z-[100]"></div>
+
+    <!-- JavaScript -->
+    <script>
+        // --- VANTA.JS BACKGROUND ---
+        VANTA.NET({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            backgroundColor: 0xf6f7f6, // --sage-50
+            color: 0x5c7359,          // --sage-500
+            maxDistance: 22.00,
+            spacing: 18.00
+        });
+        
+        // --- NOTIFICATION SYSTEM ---
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notif = document.createElement('div');
+            
+            let bgColor;
+            switch(type) {
+                case 'success': bgColor = 'bg-green-500'; break;
+                case 'error': bgColor = 'bg-red-500'; break;
+                default: bgColor = 'bg-blue-500';
+            }
+            
+            notif.className = `px-4 py-3 rounded-lg shadow-lg text-white ${bgColor} mb-2 animate-pulse`;
+            notif.textContent = message;
+            
+            container.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.classList.remove('animate-pulse');
+                notif.style.transition = 'opacity 0.5s ease';
+                notif.style.opacity = '0';
+                setTimeout(() => notif.remove(), 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

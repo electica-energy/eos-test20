@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - Energy Action Models</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Plotly.js CDN (Not used here, but for consistency) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    
+    <!-- Vanta.js CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.net.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --sage-50: #f6f7f6;
+            --sage-100: #e3e7e3;
+            --sage-200: #c7d0c7;
+            --sage-300: #a3b3a3;
+            --sage-400: #7a907a;
+            --sage-500: #5c7359;
+            --sage-600: #495d47;
+            --sage-700: #3d4d3b;
+            --sage-800: #334032;
+            --sage-900: #2b352b;
+            
+            --charcoal-50: #f6f6f6;
+            --charcoal-100: #e7e7e7;
+            --charcoal-200: #d1d1d1;
+            --charcoal-300: #b0b0b0;
+            --charcoal-400: #888888;
+            --charcoal-500: #6d6d6d;
+            --charcoal-600: #5d5d5d;
+            --charcoal-700: #4f4f4f;
+            --charcoal-800: #454545;
+            --charcoal-900: #3d3d3d;
+            
+            --accent-green: #22c55e;
+            --accent-blue: #3b82f6;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--sage-50);
+            min-height: 100vh;
+        }
+        
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .glass-effect, .config-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            padding: 8px 16px;
+            color: var(--charcoal-600);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            color: var(--charcoal-900);
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: var(--sage-700);
+            font-weight: 600;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--sage-700), var(--charcoal-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Custom Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--sage-200);
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--accent-green);
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Custom Range Slider */
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: var(--sage-200);
+            border-radius: 5px;
+            outline: none;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-blue);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .range-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-blue);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="text-charcoal-800">
+
+    <!-- Vanta.js Background -->
+    <div id="vanta-bg"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 glass-effect border-b border-white/20">
+        <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-xl gradient-text">Electica Energy</span>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex md:items-center md:space-x-2">
+                    <a href="index.html" class="nav-link">Dashboard</a>
+                    <a href="trading.html" class="nav-link">Energy Trading</a>
+                    <a href="analytics.html" class="nav-link">Analytics</a>
+                    <a href="reports.html" class="nav-link">Reports</a>
+                    <a href="configuration.html" class="nav-link active">Configuration</a>
+                    <a href="dashboard.html" class="nav-link">EAM Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-charcoal-900 mb-2">System Configuration</h1>
+            <p class="text-xl text-charcoal-600">Tune and optimize your Energy Action Models</p>
+        </header>
+
+        <!-- Configuration Grid -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            
+            <!-- System Settings -->
+            <div class="config-card rounded-2xl p-6 card-hover">
+                <h2 class="text-xl font-semibold text-charcoal-900 mb-6">System Settings</h2>
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-medium text-charcoal-800">Auto-Optimization</h3>
+                            <p class="text-sm text-charcoal-600">Enable automatic system optimization</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="showNotification('Auto-Optimization updated', 'info')">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-medium text-charcoal-800">Predictive Maintenance</h3>
+                            <p class="text-sm text-charcoal-600">AI-powered maintenance scheduling</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="showNotification('Predictive Maintenance updated', 'info')">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-medium text-charcoal-800">Real-time Alerts</h3>
+                            <p class="text-sm text-charcoal-600">Instant critical event notifications</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="showNotification('Real-time Alerts updated', 'info')">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance Tuning -->
+            <div class="config-card rounded-2xl p-6 card-hover">
+                <h2 class="text-xl font-semibold text-charcoal-900 mb-6">Performance Tuning</h2>
+                <div class="space-y-5">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="font-medium text-charcoal-800">Sampling Rate</label>
+                            <span id="samplingRateValue" class="text-sm font-medium text-charcoal-700">10 Hz</span>
+                        </div>
+                        <input type="range" min="1" max="100" value="10" class="range-slider" oninput="updateSliderValue('samplingRateValue', this.value, 'Hz')">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="font-medium text-charcoal-800">Prediction Horizon</label>
+                            <span id="predictionHorizonValue" class="text-sm font-medium text-charcoal-700">30 min</span>
+                        </div>
+                        <input type="range" min="5" max="120" value="30" class="range-slider" oninput="updateSliderValue('predictionHorizonValue', this.value, 'min')">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="font-medium text-charcoal-800">Alert Threshold (SoH)</label>
+                            <span id="alertThresholdValue" class="text-sm font-medium text-charcoal-700">85 %</span>
+                        </div>
+                        <input type="range" min="50" max="100" value="85" class="range-slider" oninput="updateSliderValue('alertThresholdValue', this.value, '%')">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Configuration -->
+            <div class="config-card rounded-2xl p-6 card-hover">
+                <h2 class="text-xl font-semibold text-charcoal-900 mb-6">Model Configuration</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="primaryModel" class="text-sm font-medium text-charcoal-800">Primary Model</label>
+                        <select id="primaryModel" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                            <option selected>Neural ODE</option>
+                            <option>Transformer</option>
+                            <option>Ensemble</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="trainingFrequency" class="text-sm font-medium text-charcoal-800">Training Frequency</label>
+                        <select id="trainingFrequency" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                            <option>Daily</option>
+                            <option selected>Weekly</option>
+                            <option>Monthly</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notifications -->
+            <div class="config-card rounded-2xl p-6 card-hover">
+                <h2 class="text-xl font-semibold text-charcoal-900 mb-6">Notifications</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-medium text-charcoal-800">Email Alerts</h3>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="showNotification('Email Alerts updated', 'info')">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div>
+                        <label for="alertEmail" class="text-sm font-medium text-charcoal-800">Alert Email</label>
+                        <input type="email" id="alertEmail" value="admin@electica.energy" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                    </div>
+                </div>
+            </div>
+
+        </section>
+        
+        <!-- Advanced Configuration -->
+        <section class="config-card rounded-2xl p-6 mb-8 card-hover">
+            <h2 class="text-xl font-semibold text-charcoal-900 mb-6">Advanced Configuration</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="maxCurrent" class="text-sm font-medium text-charcoal-800">Max Charging Current (A)</label>
+                    <input type="number" id="maxCurrent" value="50" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                </div>
+                <div>
+                    <label for="tempLimit" class="text-sm font-medium text-charcoal-800">Temperature Limit (°C)</label>
+                    <input type="number" id="tempLimit" value="45" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                </div>
+                <div>
+                    <label for="voltageRange" class="text-sm font-medium text-charcoal-800">Voltage Range (V)</label>
+                    <input type="text" id="voltageRange" value="3.0-4.2" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white/50">
+                </div>
+            </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <section class="flex space-x-4">
+            <button class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors" onclick="showNotification('Configuration saved successfully!', 'success')">
+                Save Configuration
+            </button>
+            <button class="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors" onclick="showNotification('Configuration test passed!', 'success')">
+                Test Configuration
+            </button>
+            <button class="px-6 py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors" onclick="showNotification('Configuration reset to defaults.', 'info')">
+                Reset to Defaults
+            </button>
+        </section>
+
+    </main>
+    
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed top-20 right-4 z-[100]"></div>
+
+    <!-- JavaScript -->
+    <script>
+        // --- VANTA.JS BACKGROUND ---
+        VANTA.NET({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            backgroundColor: 0xf6f7f6, // --sage-50
+            color: 0x5c7359,          // --sage-500
+            maxDistance: 22.00,
+            spacing: 18.00
+        });
+
+        // --- NOTIFICATION SYSTEM ---
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notif = document.createElement('div');
+            
+            let bgColor;
+            switch(type) {
+                case 'success': bgColor = 'bg-green-500'; break;
+                case 'error': bgColor = 'bg-red-500'; break;
+                default: bgColor = 'bg-blue-500';
+            }
+            
+            notif.className = `px-4 py-3 rounded-lg shadow-lg text-white ${bgColor} mb-2 animate-pulse`;
+            notif.textContent = message;
+            
+            container.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.classList.remove('animate-pulse');
+                notif.style.transition = 'opacity 0.5s ease';
+                notif.style.opacity = '0';
+                setTimeout(() => notif.remove(), 500);
+            }, 3000);
+        }
+
+        // --- SLIDER VALUE UPDATER ---
+        function updateSliderValue(elementId, value, unit) {
+            document.getElementById(elementId).textContent = `${value} ${unit}`;
+        }
+    </script>
+</body>
+</html>
